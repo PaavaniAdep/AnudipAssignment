@@ -1,10 +1,8 @@
-/*Question
-
-
-Write SQL queries on a table using the following concepts: UPDATE command, wildcard operators (% and _), LIMIT clause, DISTINCT and non-distinct records, AND, OR, BETWEEN, NOT BETWEEN, IN, NOT IN, IS NULL, IS NOT NULL, greater than (>), less than (<), greater than equal to (>=), and less than equal to (<=) operators?
-
+/* Question:
+         Aggregation function, ORDER BY clauses, GROUP BY clauses, HAVING clauses, RENAME */
 
 Answer:
+
 
 
 
@@ -12,6 +10,7 @@ mysql> show databases;
 +---------------------------+
 | Database                  |
 +---------------------------+
+| bankaccount               |
 | ecommerce                 |
 | hospital                  |
 | information_schema        |
@@ -21,8 +20,10 @@ mysql> show databases;
 | student_management_system |
 | sys                       |
 +---------------------------+
-8 rows in set (0.22 sec)
+9 rows in set (0.09 sec)
 
+mysql> select * from orders;
+ERROR 1046 (3D000): No database selected
 mysql> use ecommerce;
 Database changed
 mysql> show tables;
@@ -34,264 +35,277 @@ mysql> show tables;
 | product             |
 | student             |
 +---------------------+
-4 rows in set (0.03 sec)
+4 rows in set (0.02 sec)
 
-mysql> select * from customer;
-Empty set (0.05 sec)
+mysql> select * from orders;
+Empty set (0.03 sec)
 
-mysql> desc customer;
-+---------------+--------------+------+-----+---------+-------+
-| Field         | Type         | Null | Key | Default | Extra |
-+---------------+--------------+------+-----+---------+-------+
-| customer_id   | varchar(10)  | NO   | PRI | NULL    |       |
-| customer_name | varchar(10)  | NO   |     | NULL    |       |
-| city          | varchar(10)  | NO   |     | NULL    |       |
-| email         | varchar(20)  | NO   |     | NULL    |       |
-| address       | varchar(100) | NO   |     | NULL    |       |
-| phonenumber   | varchar(10)  | NO   |     | NULL    |       |
-| pincode       | int          | NO   |     | NULL    |       |
-| bill_no       | int          | NO   |     | NULL    |       |
-| state         | varchar(10)  | NO   |     | NULL    |       |
-| country       | varchar(10)  | NO   |     | NULL    |       |
-+---------------+--------------+------+-----+---------+-------+
-10 rows in set (0.02 sec)
+mysql> desc orders;
++--------------+-------------+------+-----+---------+----------------+
+| Field        | Type        | Null | Key | Default | Extra          |
++--------------+-------------+------+-----+---------+----------------+
+| order_id     | int         | NO   | PRI | NULL    | auto_increment |
+| customer_id  | varchar(5)  | NO   | MUL | NULL    |                |
+| product_id   | varchar(5)  | NO   | MUL | NULL    |                |
+| quantity     | int         | NO   |     | NULL    |                |
+| total_price  | double      | NO   |     | NULL    |                |
+| payment_mode | varchar(20) | NO   |     | NULL    |                |
+| order_date   | date        | NO   |     | NULL    |                |
+| order_status | varchar(20) | NO   |     | NULL    |                |
++--------------+-------------+------+-----+---------+----------------+
+8 rows in set (0.01 sec)
 
-mysql> insert into customer(customer_id,customer_name,city,email,address,phonenumber,pincode,bill_no,state,country)values('c101','laya','bhiwandi','laya@gmail.com','balaji nagar','9870653452',421302,99,'maharastra','india'),('c102','vasu','narpoli','vasu@gmail.com','bhandari compound','9870574328',421303,09,'usa','xyz');
-Query OK, 2 rows affected (0.03 sec)
-Records: 2  Duplicates: 0  Warnings: 0
+mysql> create database aggregation;
+Query OK, 1 row affected (0.02 sec)
 
-mysql> select * from customer;
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email          | address           | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com | balaji nagar      | 9870653452  |  421302 |      99 | maharastra | india   |
-| c102        | vasu          | narpoli  | vasu@gmail.com | bhandari compound | 9870574328  |  421303 |       9 | usa        | xyz     |
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
+mysql> use aggregation;
+Database changed
+mysql> create table orders(order_id varchar(5) not null primary key,product_name varchar(10) not null,original_price double not null,selling_price double not null);
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> create table product(product_id varchar(5) not null primary key,product_name varchar(10) not null,original_price double not null,selling_price double not null);
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> alter table product add column category varchar(20) not null;
+Query OK, 0 rows affected (0.07 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> alter table product add column stock int not null;
+Query OK, 0 rows affected (0.06 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> desc product;
++----------------+-------------+------+-----+---------+-------+
+| Field          | Type        | Null | Key | Default | Extra |
++----------------+-------------+------+-----+---------+-------+
+| product_id     | varchar(5)  | NO   | PRI | NULL    |       |
+| product_name   | varchar(10) | NO   |     | NULL    |       |
+| original_price | double      | NO   |     | NULL    |       |
+| selling_price  | double      | NO   |     | NULL    |       |
+| category       | varchar(20) | NO   |     | NULL    |       |
+| stock          | int         | NO   |     | NULL    |       |
++----------------+-------------+------+-----+---------+-------+
+6 rows in set (0.01 sec)
+
+mysql> insert into product values('p101','chair','6000','50000','furniture',12);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into product values('p102','table','4000','3000','furniture',10);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into product values('p103','mobile','20000','17000','electronic',10),('p104','jeans','25000','6000','clothing','14'),('p105','webcam','7000','60000','electronic','22');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+
+mysql> select * from product;
++------------+--------------+----------------+---------------+------------+-------+
+| product_id | product_name | original_price | selling_price | category   | stock |
++------------+--------------+----------------+---------------+------------+-------+
+| p101       | chair        |           6000 |         50000 | furniture  |    12 |
+| p102       | table        |           4000 |          3000 | furniture  |    10 |
+| p103       | mobile       |          20000 |         17000 | electronic |    10 |
+| p104       | jeans        |          25000 |          6000 | clothing   |    14 |
+| p105       | webcam       |           7000 |         60000 | electronic |    22 |
++------------+--------------+----------------+---------------+------------+-------+
+5 rows in set (0.00 sec)
+
+mysql> select sum(selling_price) from product;
++--------------------+
+| sum(selling_price) |
++--------------------+
+|             136000 |
++--------------------+
+1 row in set (0.01 sec)
+
+mysql> select avg(selling_price) from product;
++--------------------+
+| avg(selling_price) |
++--------------------+
+|              27200 |
++--------------------+
+1 row in set (0.00 sec)
+
+mysql> select count(*) from product;
++----------+
+| count(*) |
++----------+
+|        5 |
++----------+
+1 row in set (0.01 sec)
+
+mysql> select max(stock) from product;
++------------+
+| max(stock) |
++------------+
+|         22 |
++------------+
+1 row in set (0.00 sec)
+
+mysql> select min(stock) from product;
++------------+
+| min(stock) |
++------------+
+|         10 |
++------------+
+1 row in set (0.00 sec)
+
+mysql> select * from product order by stock;
++------------+--------------+----------------+---------------+------------+-------+
+| product_id | product_name | original_price | selling_price | category   | stock |
++------------+--------------+----------------+---------------+------------+-------+
+| p102       | table        |           4000 |          3000 | furniture  |    10 |
+| p103       | mobile       |          20000 |         17000 | electronic |    10 |
+| p101       | chair        |           6000 |         50000 | furniture  |    12 |
+| p104       | jeans        |          25000 |          6000 | clothing   |    14 |
+| p105       | webcam       |           7000 |         60000 | electronic |    22 |
++------------+--------------+----------------+---------------+------------+-------+
+5 rows in set (0.00 sec)
+
+mysql> select * from product order by stock desc;
++------------+--------------+----------------+---------------+------------+-------+
+| product_id | product_name | original_price | selling_price | category   | stock |
++------------+--------------+----------------+---------------+------------+-------+
+| p105       | webcam       |           7000 |         60000 | electronic |    22 |
+| p104       | jeans        |          25000 |          6000 | clothing   |    14 |
+| p101       | chair        |           6000 |         50000 | furniture  |    12 |
+| p102       | table        |           4000 |          3000 | furniture  |    10 |
+| p103       | mobile       |          20000 |         17000 | electronic |    10 |
++------------+--------------+----------------+---------------+------------+-------+
+5 rows in set (0.00 sec)
+
+mysql> select * from product order by stock desc limit 2;
++------------+--------------+----------------+---------------+------------+-------+
+| product_id | product_name | original_price | selling_price | category   | stock |
++------------+--------------+----------------+---------------+------------+-------+
+| p105       | webcam       |           7000 |         60000 | electronic |    22 |
+| p104       | jeans        |          25000 |          6000 | clothing   |    14 |
++------------+--------------+----------------+---------------+------------+-------+
 2 rows in set (0.00 sec)
 
-mysql> insert into customer(customer_id,customer_name,city,email,address,phonenumber,pincode,bill_no,state,country)values('c103','chiti','devji','chiti@gmail.com','thane','9879853452',421306,89,'bhandup','mumbai'),('c104','depu','naka','depu@gmail.com','narayan compound','9835574328',421305,80,'delhi','opl');
-Query OK, 2 rows affected (0.01 sec)
-Records: 2  Duplicates: 0  Warnings: 0
+mysql> select * from product order by stock limit 2;
++------------+--------------+----------------+---------------+------------+-------+
+| product_id | product_name | original_price | selling_price | category   | stock |
++------------+--------------+----------------+---------------+------------+-------+
+| p102       | table        |           4000 |          3000 | furniture  |    10 |
+| p103       | mobile       |          20000 |         17000 | electronic |    10 |
++------------+--------------+----------------+---------------+------------+-------+
+2 rows in set (0.00 sec)
 
-mysql> select * from customer;
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email           | address           | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com  | balaji nagar      | 9870653452  |  421302 |      99 | maharastra | india   |
-| c102        | vasu          | narpoli  | vasu@gmail.com  | bhandari compound | 9870574328  |  421303 |       9 | usa        | xyz     |
-| c103        | chiti         | devji    | chiti@gmail.com | thane             | 9879853452  |  421306 |      89 | bhandup    | mumbai  |
-| c104        | depu          | naka     | depu@gmail.com  | narayan compound  | 9835574328  |  421305 |      80 | delhi      | opl     |
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-4 rows in set (0.00 sec)
+mysql> create table employee(employee_id varchar(5) not null primary key,employee_name varchar(10) not null,department varchar(10) not null,salary int not null);
+Query OK, 0 rows affected (0.04 sec)
 
-mysql> update customer set address='payal compound' where customer_id='c103';
-Query OK, 1 row affected (0.01 sec)
-Rows matched: 1  Changed: 1  Warnings: 0
-
-mysql> select * from customer;
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email           | address           | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com  | balaji nagar      | 9870653452  |  421302 |      99 | maharastra | india   |
-| c102        | vasu          | narpoli  | vasu@gmail.com  | bhandari compound | 9870574328  |  421303 |       9 | usa        | xyz     |
-| c103        | chiti         | devji    | chiti@gmail.com | payal compound    | 9879853452  |  421306 |      89 | bhandup    | mumbai  |
-| c104        | depu          | naka     | depu@gmail.com  | narayan compound  | 9835574328  |  421305 |      80 | delhi      | opl     |
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-4 rows in set (0.00 sec)
-
-mysql> select * from customer where customer_name like 'ti%';
+mysql> select * from employee;
 Empty set (0.01 sec)
 
-mysql> select * from customer where customer_name like '%ti';
-+-------------+---------------+-------+-----------------+----------------+-------------+---------+---------+---------+---------+
-| customer_id | customer_name | city  | email           | address        | phonenumber | pincode | bill_no | state   | country |
-+-------------+---------------+-------+-----------------+----------------+-------------+---------+---------+---------+---------+
-| c103        | chiti         | devji | chiti@gmail.com | payal compound | 9879853452  |  421306 |      89 | bhandup | mumbai  |
-+-------------+---------------+-------+-----------------+----------------+-------------+---------+---------+---------+---------+
-1 row in set (0.00 sec)
 
-mysql> select * from customer where customer_name like '%a%';
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email          | address           | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com | balaji nagar      | 9870653452  |  421302 |      99 | maharastra | india   |
-| c102        | vasu          | narpoli  | vasu@gmail.com | bhandari compound | 9870574328  |  421303 |       9 | usa        | xyz     |
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-2 rows in set (0.00 sec)
+mysql> insert into employee values('e101','pavani','HR',40000),('e102','diksha','HR',30000),('e103','dipti','IT',9000),('e104','laya','IT',7000),('e105','vasu','finance',8000);
+Query OK, 5 rows affected (0.01 sec)
+Records: 5  Duplicates: 0  Warnings: 0
 
-mysql> select * from customer where customer_name like 'pu%';
-Empty set (0.00 sec)
+mysql> select * from employee;
++-------------+---------------+------------+--------+
+| employee_id | employee_name | department | salary |
++-------------+---------------+------------+--------+
+| e101        | pavani        | HR         |  40000 |
+| e102        | diksha        | HR         |  30000 |
+| e103        | dipti         | IT         |   9000 |
+| e104        | laya          | IT         |   7000 |
+| e105        | vasu          | finance    |   8000 |
++-------------+---------------+------------+--------+
+5 rows in set (0.00 sec)
 
-mysql> select * from customer where customer_name like 'u%';
-Empty set (0.00 sec)
-
-mysql> select * from customer where customer_name like '%pu';
-+-------------+---------------+------+----------------+------------------+-------------+---------+---------+-------+---------+
-| customer_id | customer_name | city | email          | address          | phonenumber | pincode | bill_no | state | country |
-+-------------+---------------+------+----------------+------------------+-------------+---------+---------+-------+---------+
-| c104        | depu          | naka | depu@gmail.com | narayan compound | 9835574328  |  421305 |      80 | delhi | opl     |
-+-------------+---------------+------+----------------+------------------+-------------+---------+---------+-------+---------+
-1 row in set (0.00 sec)
-
-mysql> select * from customer where customer_name like 'l___';
-+-------------+---------------+----------+----------------+--------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email          | address      | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+----------------+--------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com | balaji nagar | 9870653452  |  421302 |      99 | maharastra | india   |
-+-------------+---------------+----------+----------------+--------------+-------------+---------+---------+------------+---------+
-1 row in set (0.00 sec)
-
-mysql> select * from customer where customer_name like '_a__';
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email          | address           | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com | balaji nagar      | 9870653452  |  421302 |      99 | maharastra | india   |
-| c102        | vasu          | narpoli  | vasu@gmail.com | bhandari compound | 9870574328  |  421303 |       9 | usa        | xyz     |
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-2 rows in set (0.00 sec)
-
-mysql> select * from customer where customer_name like '__p_';
-+-------------+---------------+------+----------------+------------------+-------------+---------+---------+-------+---------+
-| customer_id | customer_name | city | email          | address          | phonenumber | pincode | bill_no | state | country |
-+-------------+---------------+------+----------------+------------------+-------------+---------+---------+-------+---------+
-| c104        | depu          | naka | depu@gmail.com | narayan compound | 9835574328  |  421305 |      80 | delhi | opl     |
-+-------------+---------------+------+----------------+------------------+-------------+---------+---------+-------+---------+
-1 row in set (0.00 sec)
-
-mysql> select * from customer limit 3;
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email           | address           | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com  | balaji nagar      | 9870653452  |  421302 |      99 | maharastra | india   |
-| c102        | vasu          | narpoli  | vasu@gmail.com  | bhandari compound | 9870574328  |  421303 |       9 | usa        | xyz     |
-| c103        | chiti         | devji    | chiti@gmail.com | payal compound    | 9879853452  |  421306 |      89 | bhandup    | mumbai  |
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
+mysql> select department,count(*) AS total_employee from EMPLOYEE GROUP BY department;
++------------+----------------+
+| department | total_employee |
++------------+----------------+
+| HR         |              2 |
+| IT         |              2 |
+| finance    |              1 |
++------------+----------------+
 3 rows in set (0.00 sec)
 
-mysql> select * from customer limit 2;
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email          | address           | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com | balaji nagar      | 9870653452  |  421302 |      99 | maharastra | india   |
-| c102        | vasu          | narpoli  | vasu@gmail.com | bhandari compound | 9870574328  |  421303 |       9 | usa        | xyz     |
-+-------------+---------------+----------+----------------+-------------------+-------------+---------+---------+------------+---------+
-2 rows in set (0.00 sec)
-
-mysql> select distinct city from customer;
-+----------+
-| city     |
-+----------+
-| bhiwandi |
-| narpoli  |
-| devji    |
-| naka     |
-+----------+
-4 rows in set (0.00 sec)
-
-mysql> select * from customer where bill_no>80;
-+-------------+---------------+----------+-----------------+----------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email           | address        | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+-----------------+----------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com  | balaji nagar   | 9870653452  |  421302 |      99 | maharastra | india   |
-| c103        | chiti         | devji    | chiti@gmail.com | payal compound | 9879853452  |  421306 |      89 | bhandup    | mumbai  |
-+-------------+---------------+----------+-----------------+----------------+-------------+---------+---------+------------+---------+
-2 rows in set (0.00 sec)
-
-mysql> select * from customer where bill_no<80;
-+-------------+---------------+---------+----------------+-------------------+-------------+---------+---------+-------+---------+
-| customer_id | customer_name | city    | email          | address           | phonenumber | pincode | bill_no | state | country |
-+-------------+---------------+---------+----------------+-------------------+-------------+---------+---------+-------+---------+
-| c102        | vasu          | narpoli | vasu@gmail.com | bhandari compound | 9870574328  |  421303 |       9 | usa   | xyz     |
-+-------------+---------------+---------+----------------+-------------------+-------------+---------+---------+-------+---------+
-1 row in set (0.00 sec)
-
-mysql> select * from customer where bill_no<=80;
-+-------------+---------------+---------+----------------+-------------------+-------------+---------+---------+-------+---------+
-| customer_id | customer_name | city    | email          | address           | phonenumber | pincode | bill_no | state | country |
-+-------------+---------------+---------+----------------+-------------------+-------------+---------+---------+-------+---------+
-| c102        | vasu          | narpoli | vasu@gmail.com | bhandari compound | 9870574328  |  421303 |       9 | usa   | xyz     |
-| c104        | depu          | naka    | depu@gmail.com | narayan compound  | 9835574328  |  421305 |      80 | delhi | opl     |
-+-------------+---------------+---------+----------------+-------------------+-------------+---------+---------+-------+---------+
-2 rows in set (0.00 sec)
-
-mysql> select * from customer where bill_no>=80;
-+-------------+---------------+----------+-----------------+------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email           | address          | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+-----------------+------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com  | balaji nagar     | 9870653452  |  421302 |      99 | maharastra | india   |
-| c103        | chiti         | devji    | chiti@gmail.com | payal compound   | 9879853452  |  421306 |      89 | bhandup    | mumbai  |
-| c104        | depu          | naka     | depu@gmail.com  | narayan compound | 9835574328  |  421305 |      80 | delhi      | opl     |
-+-------------+---------------+----------+-----------------+------------------+-------------+---------+---------+------------+---------+
+mysql> select department,sum(salary) AS total_salary from employee GROUP BY department;
++------------+--------------+
+| department | total_salary |
++------------+--------------+
+| HR         |        70000 |
+| IT         |        16000 |
+| finance    |         8000 |
++------------+--------------+
 3 rows in set (0.00 sec)
 
-mysql> select * from customer where customer_name='laya' AND bill_no='80';
-Empty set (0.00 sec)
+mysql> select department,avg(salary) AS average_salary from employee GROUP BY department;
++------------+----------------+
+| department | average_salary |
++------------+----------------+
+| HR         |     35000.0000 |
+| IT         |      8000.0000 |
+| finance    |      8000.0000 |
++------------+----------------+
+3 rows in set (0.00 sec)
 
-mysql> select * from customer where customer_name='laya' OR bill_no='80';
-+-------------+---------------+----------+----------------+------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email          | address          | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+----------------+------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com | balaji nagar     | 9870653452  |  421302 |      99 | maharastra | india   |
-| c104        | depu          | naka     | depu@gmail.com | narayan compound | 9835574328  |  421305 |      80 | delhi      | opl     |
-+-------------+---------------+----------+----------------+------------------+-------------+---------+---------+------------+---------+
+mysql> select department,salary,count(*) from employee GROUP BY department,salary;
++------------+--------+----------+
+| department | salary | count(*) |
++------------+--------+----------+
+| HR         |  40000 |        1 |
+| HR         |  30000 |        1 |
+| IT         |   9000 |        1 |
+| IT         |   7000 |        1 |
+| finance    |   8000 |        1 |
++------------+--------+----------+
+5 rows in set (0.00 sec)
+
+mysql> select department,count(*) as total_employee from employee group by department having count(*)> 1;
++------------+----------------+
+| department | total_employee |
++------------+----------------+
+| HR         |              2 |
+| IT         |              2 |
++------------+----------------+
 2 rows in set (0.00 sec)
 
-mysql> select * from customer where customer_id between 'c102' and 'c104';
-+-------------+---------------+---------+-----------------+-------------------+-------------+---------+---------+---------+---------+
-| customer_id | customer_name | city    | email           | address           | phonenumber | pincode | bill_no | state   | country |
-+-------------+---------------+---------+-----------------+-------------------+-------------+---------+---------+---------+---------+
-| c102        | vasu          | narpoli | vasu@gmail.com  | bhandari compound | 9870574328  |  421303 |       9 | usa     | xyz     |
-| c103        | chiti         | devji   | chiti@gmail.com | payal compound    | 9879853452  |  421306 |      89 | bhandup | mumbai  |
-| c104        | depu          | naka    | depu@gmail.com  | narayan compound  | 9835574328  |  421305 |      80 | delhi   | opl     |
-+-------------+---------------+---------+-----------------+-------------------+-------------+---------+---------+---------+---------+
+mysql> select department,sum(salary) as total_salary from employee group by department having sum(salary)> 8000;
++------------+--------------+
+| department | total_salary |
++------------+--------------+
+| HR         |        70000 |
+| IT         |        16000 |
++------------+--------------+
+2 rows in set (0.00 sec)
+
+mysql> select department,sum(salary) as total_salary from employee group by department having sum(salary)> 6000;
++------------+--------------+
+| department | total_salary |
++------------+--------------+
+| HR         |        70000 |
+| IT         |        16000 |
+| finance    |         8000 |
++------------+--------------+
 3 rows in set (0.00 sec)
 
-mysql> select * from customer where customer_id between 'c101' and 'c103';
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email           | address           | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com  | balaji nagar      | 9870653452  |  421302 |      99 | maharastra | india   |
-| c102        | vasu          | narpoli  | vasu@gmail.com  | bhandari compound | 9870574328  |  421303 |       9 | usa        | xyz     |
-| c103        | chiti         | devji    | chiti@gmail.com | payal compound    | 9879853452  |  421306 |      89 | bhandup    | mumbai  |
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-3 rows in set (0.00 sec)
+mysql> select department,avg(salary) as total_salary from employee group by department having sum(salary)> 9000;
++------------+--------------+
+| department | total_salary |
++------------+--------------+
+| HR         |   35000.0000 |
+| IT         |    8000.0000 |
++------------+--------------+
+2 rows in set (0.00 sec)
 
-mysql> select * from customer where customer_id not between 'c102' and 'c104';
-+-------------+---------------+----------+----------------+--------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email          | address      | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+----------------+--------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com | balaji nagar | 9870653452  |  421302 |      99 | maharastra | india   |
-+-------------+---------------+----------+----------------+--------------+-------------+---------+---------+------------+---------+
-1 row in set (0.00 sec)
+mysql> alter table employee rename to employee_details;
+Query OK, 0 rows affected (0.03 sec)
 
-mysql> select * from customer where customer_id in ('c101','c104','c103');
-+-------------+---------------+----------+-----------------+------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email           | address          | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+-----------------+------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com  | balaji nagar     | 9870653452  |  421302 |      99 | maharastra | india   |
-| c103        | chiti         | devji    | chiti@gmail.com | payal compound   | 9879853452  |  421306 |      89 | bhandup    | mumbai  |
-| c104        | depu          | naka     | depu@gmail.com  | narayan compound | 9835574328  |  421305 |      80 | delhi      | opl     |
-+-------------+---------------+----------+-----------------+------------------+-------------+---------+---------+------------+---------+
-3 rows in set (0.00 sec)
 
-mysql> select * from customer where customer_id not in ('c101','c104','c103');
-+-------------+---------------+---------+----------------+-------------------+-------------+---------+---------+-------+---------+
-| customer_id | customer_name | city    | email          | address           | phonenumber | pincode | bill_no | state | country |
-+-------------+---------------+---------+----------------+-------------------+-------------+---------+---------+-------+---------+
-| c102        | vasu          | narpoli | vasu@gmail.com | bhandari compound | 9870574328  |  421303 |       9 | usa   | xyz     |
-+-------------+---------------+---------+----------------+-------------------+-------------+---------+---------+-------+---------+
-1 row in set (0.00 sec)
-
-mysql> select * from customer where email is null;
-Empty set (0.00 sec)
-
-mysql> select * from customer where email is not null;
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-| customer_id | customer_name | city     | email           | address           | phonenumber | pincode | bill_no | state      | country |
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-| c101        | laya          | bhiwandi | laya@gmail.com  | balaji nagar      | 9870653452  |  421302 |      99 | maharastra | india   |
-| c102        | vasu          | narpoli  | vasu@gmail.com  | bhandari compound | 9870574328  |  421303 |       9 | usa        | xyz     |
-| c103        | chiti         | devji    | chiti@gmail.com | payal compound    | 9879853452  |  421306 |      89 | bhandup    | mumbai  |
-| c104        | depu          | naka     | depu@gmail.com  | narayan compound  | 9835574328  |  421305 |      80 | delhi      | opl     |
-+-------------+---------------+----------+-----------------+-------------------+-------------+---------+---------+------------+---------+
-4 rows in set (0.00 sec)
+mysql> select * from employee_details;
++-------------+---------------+------------+--------+
+| employee_id | employee_name | department | salary |
++-------------+---------------+------------+--------+
+| e101        | pavani        | HR         |  40000 |
+| e102        | diksha        | HR         |  30000 |
+| e103        | dipti         | IT         |   9000 |
+| e104        | laya          | IT         |   7000 |
+| e105        | vasu          | finance    |   8000 |
++-------------+---------------+------------+--------+
+5 rows in set (0.00 sec)
